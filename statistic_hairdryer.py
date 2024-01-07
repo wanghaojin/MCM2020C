@@ -20,11 +20,12 @@ def filter_adjectives(words):
     adjectives = []
     for word, count in words:
         tagged_word = pos_tag([word])
-        if tagged_word[0][1] in ['JJ', 'JJR', 'JJS']:  
-            adjectives.append((word, count))
+        if tagged_word[0][1] in ['NN', 'NNS', 'NNP','NNPS']:
+            if not tagged_word[0][1] in ['JJ','JJR','JJS']: 
+                    adjectives.append((word, count))
     return adjectives
 
-def plot_top_words(words, top_n=50, save_path='result/top_words_filtered.png'):
+def plot_top_words(words, top_n=50, save_path='result/top_words_filtered_n.png'):
     top_words = words[:top_n]
     labels, counts = zip(*top_words)
     plt.figure(figsize=(15, 10))
