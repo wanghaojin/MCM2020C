@@ -37,6 +37,7 @@ class Review:
         self.weight = 1
         self.alpha1 = 1
         self.alpha2 = 1
+        self.check = 0.3
     def deal(self):
         self.vine = 1 if self.vine == "Y" else 0
         self.verified_purchase = 1 if self.verified_purchase == "Y" else 0
@@ -44,14 +45,13 @@ class Review:
         # print("verified_purchase:",self.verified_purchase)
     
     def get_weight(self):
-        check = 0.3
         if self.total_votes != 0:
             if self.helpful_votes == 0:
-                check = 1/self.total_votes
+                self.check = 1/self.total_votes
             else:
-                check = 1 - (math.e * self.total_votes)/(self.helpful_votes * math.exp(self.helpful_votes))
-            check = min(max(check, 0), 1)
-        self.alpha1 = f(check)
+                self.check = 1 - (math.e * self.total_votes)/(self.helpful_votes * math.exp(self.helpful_votes))
+            self.check = min(max(self.check, 0), 1)
+        self.alpha1 = f(self.check)
         self.alpha2 = 3 if self.vine == 1 else 1
         self.weight = self.weight * self.alpha1 * self.alpha2
         
@@ -74,16 +74,12 @@ def f(x):
 def process_tsv_file(file_path):
     df = pd.read_csv(file_path, sep='\t')
     reviews = []
-    with open('sample.in', 'w') as file:
-        for _, row in df.iterrows():
-            review = Review(*row)
-            review.deal()
-            review.get_weight()
-            reviews.append(review)
-            file.write(str(review.review_body) + '\n')
-        file.write(';')
+    for _, row in df.iterrows():
+        review = Review(*row)
+        review.deal()
+        review.get_weight()
+        reviews.append(review)
     return reviews
-
 
 def find_cluster_names(tfidf_matrix, kmeans_model, product_titles):
     order_centroids = kmeans_model.cluster_centers_.argsort()[:, ::-1]
@@ -97,9 +93,9 @@ def find_cluster_names(tfidf_matrix, kmeans_model, product_titles):
 tsv_path = 'Problem_C_Data/hair_dryer.tsv'
 
 reviews = process_tsv_file(tsv_path)
-# reviews_by_product = defaultdict(list)
-# for review in reviews:
-#     reviews_by_product[review.product_title].append(review)
+reviews_by_product = defaultdict(list)
+for review in reviews:
+    reviews_by_product[review.product_title].append(review)
 
 # weighted_scores = {}
 # for product_title, reviews in reviews_by_product.items():
