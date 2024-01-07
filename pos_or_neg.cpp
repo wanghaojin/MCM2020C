@@ -5,9 +5,12 @@ using namespace std;
 
 struct Review
 {
+    string review_id;
     double pos_average;
     int check;
-    Review(double p, int c) : pos_average(p), check(c) {}
+    double star_rating;
+    double radio;
+    Review(string r, double p, int c, double s) : review_id(r), pos_average(p), check(c), star_rating(s), radio(0) {}
 };
 
 int main()
@@ -17,9 +20,10 @@ int main()
     double times = 0;
     while (1)
     {
-        double p;
+        string r;
+        double p, s;
         int c;
-        cin >> p >> c;
+        cin >> p >> c >> s >> r;
         if (p == 998967483)
             break;
         if (c != -1)
@@ -27,7 +31,7 @@ int main()
             c == 1 ? t += 0.3 *p : t += 0.7 * p;
             c == 1 ? times += 0.3 : times += 0.7;
         }
-        reviews.emplace_back(p, c);
+        reviews.emplace_back(r, p, c, s);
     }
     double alpha = t / times;
     for (Review &review : reviews)
@@ -36,7 +40,8 @@ int main()
         {
             review.pos_average >= alpha ? review.check = 1 : review.check = 0;
         }
-        cout << review.pos_average << " " << review.check << endl;
+        review.radio = review.pos_average / review.star_rating;
+        cout << review.review_id << " " << review.radio << endl;
     }
     return 0;
 }
