@@ -74,12 +74,16 @@ def f(x):
 def process_tsv_file(file_path):
     df = pd.read_csv(file_path, sep='\t')
     reviews = []
-    for _, row in df.iterrows():
-        review = Review(*row)
-        review.deal()
-        review.get_weight()
-        reviews.append(review)
+    with open('sample.in', 'w') as file:
+        for _, row in df.iterrows():
+            review = Review(*row)
+            review.deal()
+            review.get_weight()
+            reviews.append(review)
+            file.write(str(review.review_body) + '\n')
+        file.write(';')
     return reviews
+
 
 def find_cluster_names(tfidf_matrix, kmeans_model, product_titles):
     order_centroids = kmeans_model.cluster_centers_.argsort()[:, ::-1]
@@ -93,47 +97,46 @@ def find_cluster_names(tfidf_matrix, kmeans_model, product_titles):
 tsv_path = 'Problem_C_Data/hair_dryer.tsv'
 
 reviews = process_tsv_file(tsv_path)
+# reviews_by_product = defaultdict(list)
+# for review in reviews:
+#     reviews_by_product[review.product_title].append(review)
 
-reviews_by_product = defaultdict(list)
-for review in reviews:
-    reviews_by_product[review.product_title].append(review)
+# weighted_scores = {}
+# for product_title, reviews in reviews_by_product.items():
+#     total_weight = sum(review.weight for review in reviews)
+#     weighted_score = sum(review.weight * review.star_rating for review in reviews) / total_weight
+#     weighted_scores[product_title] = weighted_score
 
-weighted_scores = {}
-for product_title, reviews in reviews_by_product.items():
-    total_weight = sum(review.weight for review in reviews)
-    weighted_score = sum(review.weight * review.star_rating for review in reviews) / total_weight
-    weighted_scores[product_title] = weighted_score
+# product_titles = list(weighted_scores.keys())
+# tfidf_vectorizer = TfidfVectorizer(preprocessor=preprocess)
+# tfidf_matrix = tfidf_vectorizer.fit_transform(product_titles)
 
-product_titles = list(weighted_scores.keys())
-tfidf_vectorizer = TfidfVectorizer(preprocessor=preprocess)
-tfidf_matrix = tfidf_vectorizer.fit_transform(product_titles)
+# num_clusters = 20 
+# kmeans = KMeans(n_clusters=num_clusters)
+# kmeans.fit(tfidf_matrix)
+# clusters = kmeans.labels_
+# clustered_reviews = defaultdict(list)
+# for i, cluster_label in enumerate(clusters):
+#     product_title = product_titles[i]
+#     for review in reviews_by_product[product_title]:
+#         clustered_reviews[cluster_label].append(review)
+# cluster_average_scores = {}
+# for cluster_label, cluster_reviews in clustered_reviews.items():
+#     total_weight = sum(review.weight for review in cluster_reviews)
+#     weighted_score = sum(review.weight * review.star_rating for review in cluster_reviews) / total_weight
+#     cluster_average_scores[cluster_label] = weighted_score
 
-num_clusters = 20 
-kmeans = KMeans(n_clusters=num_clusters)
-kmeans.fit(tfidf_matrix)
-clusters = kmeans.labels_
-clustered_reviews = defaultdict(list)
-for i, cluster_label in enumerate(clusters):
-    product_title = product_titles[i]
-    for review in reviews_by_product[product_title]:
-        clustered_reviews[cluster_label].append(review)
-cluster_average_scores = {}
-for cluster_label, cluster_reviews in clustered_reviews.items():
-    total_weight = sum(review.weight for review in cluster_reviews)
-    weighted_score = sum(review.weight * review.star_rating for review in cluster_reviews) / total_weight
-    cluster_average_scores[cluster_label] = weighted_score
+# cluster_names = find_cluster_names(tfidf_matrix, kmeans, product_titles)
 
-cluster_names = find_cluster_names(tfidf_matrix, kmeans, product_titles)
+# sorted_clusters = sorted(cluster_average_scores.items(), key=lambda item: item[1], reverse=True)
+# plt.figure(figsize=(15, 10))
+# cluster_labels = [cluster_names[label] for label, _ in sorted_clusters]
+# average_scores = [score for _, score in sorted_clusters]
 
-sorted_clusters = sorted(cluster_average_scores.items(), key=lambda item: item[1], reverse=True)
-plt.figure(figsize=(15, 10))
-cluster_labels = [cluster_names[label] for label, _ in sorted_clusters]
-average_scores = [score for _, score in sorted_clusters]
-
-plt.barh(cluster_labels, average_scores, color='blue')
-plt.xlabel('Weighted Average Score')
-plt.ylabel('Product Cluster')
-plt.title('Weighted Average Scores by Product Cluster')
-plt.tight_layout()
-plt.savefig('result/clustered_weighted_average_scores.png')
-plt.show()
+# plt.barh(cluster_labels, average_scores, color='blue')
+# plt.xlabel('Weighted Average Score')
+# plt.ylabel('Product Cluster')
+# plt.title('Weighted Average Scores by Product Cluster')
+# plt.tight_layout()
+# plt.savefig('result/clustered_weighted_average_scores.png')
+# plt.show()
